@@ -39,7 +39,6 @@ class User(AbstractBaseUser):
         verbose_name = _('Пользователь')
         verbose_name_plural = _('Пользователи')
         unique_together = ('email', 'phone',)
-        permissions = ['']
 
     def __str__(self):
         """ Строковое представление модели (отображается в консоли) """
@@ -61,7 +60,6 @@ class User(AbstractBaseUser):
     def is_staff(self):
         return self.is_admin
 
-    @property
     def has_perm(self, perm, obj=None):
         return self.is_admin
 

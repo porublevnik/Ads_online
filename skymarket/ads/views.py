@@ -1,6 +1,14 @@
 from rest_framework import pagination, viewsets
-from .models import Ad
-from .serializers import AdSerializer, AdDetailSerializer
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.decorators import action
+from rest_framework.generics import get_object_or_404
+from rest_framework.permissions import IsAuthenticated, AllowAny
+
+from .models import Ad, Comment
+from .filters import AdFilter
+from .serializers import AdSerializer, CommentSerializer
+
+from ads.permissions import AdAdminPermission, IsExecutor, IsOwner
 
 
 class AdPagination(pagination.PageNumberPagination):
@@ -9,40 +17,51 @@ class AdPagination(pagination.PageNumberPagination):
 
 
 class AdViewSet(viewsets.ModelViewSet):
-    queryset = Ad.objects.all().order_by('id')
-    default_serializer = AdSerializer
-    serializers = {
-        'list': AdSerializer,
-        'retrieve': AdDetailSerializer
-    }
+    queryset = Ad.objects.all()
+    serializer_class = AdSerializer
     pagination_class = AdPagination
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = AdFilter
+    permission_classes = [AllowAny]
 
+    def get_permissions(self):
+        if self.action == "list":
+            self.permission_classes = [IsOwner, ]
+        elif self.action == "retrieve":
+            self.permission_classes = [IsAuthenticated, ]
+        elif self.action in ["create", "update", "partial_update", "destroy", "me"]:
+            self.permission_classes = [IsAuthenticated, AdAdminPermission | IsExecutor]
+
+        return super().get_permissions()
+
+    @action(detail=False, methods=['get'])
+    def me(self, request, *args, **kwargs):
+        self.queryset = Ad.objects.filter(author=request.user)
+        return super().list(self, request, *args, **kwargs)
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
 
 
 class CommentViewSet(viewsets.ModelViewSet):
-    pass
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    pagination_class = None
 
-# @api_view(['GET'])
-# def user_vacancies(request):
-#     user_qs = User.objects.annotate(vacancies=Count('vacancy'))
-#
-#     paginator = Paginator(user_qs, settings.TOTAL_ON_PAGE)
-#     page_number = request.GET.get('page')
-#     page_obj = paginator.get_page(page_number)
-#
-#     users = []
-#     for user in page_obj:
-#         users.append({
-#             'id': user.id,
-#             'name': user.username,
-#             'vacancies': user.vacancies
-#         })
-#
-#     response = {
-#         'items': users,
-#         'total': paginator.count,
-#         'num_pages': paginator.num_pages,
-#         'avg': user_qs.aggregate(avg=Avg('vacancies'))['avg']
-#     }
-#
-#     return JsonResponse(response)
+    def perform_create(self, serializer):
+        ads_id = self.kwargs.get("ads_pk")
+        ad_instance = get_object_or_404(Ad, id=ads_id)
+        user = self.request.user
+        serializer.save(author=user, ad=ad_instance)
+
+    def get_queryset(self, *args, **kwargs):
+        comment = self.kwargs.get('ads_pk')
+        return super().get_queryset().filter(ad=comment)
+
+    def get_permissions(self):
+        if self.action == "retrieve":
+            self.permission_classes = [IsAuthenticated, ]
+        elif self.action in ["create", "update", "partial_update", "destroy", ]:
+            self.permission_classes = [IsAuthenticated, AdAdminPermission | IsExecutor]
+        return super().get_permissions()
+

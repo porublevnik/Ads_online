@@ -12,4 +12,7 @@ class UserRegistrationSerializer(BaseUserRegistrationSerializer):
 
 
 class CurrentUserSerializer(serializers.ModelSerializer):
-    pass
+    username = serializers.CharField(source='user.email', read_only=True)
+    class Meta:
+        model = User
+        fields = '__all__'
