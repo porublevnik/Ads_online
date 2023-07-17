@@ -83,33 +83,39 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "skymarket.wsgi.application"
 
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 10,
-}
+# REST_FRAMEWORK = {
+#     'DEFAULT_AUTHENTICATION_CLASSES': (
+#         'rest_framework_simplejwt.authentication.JWTAuthentication',
+#     ),
+#     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+#     'PAGE_SIZE': 10,
+# }
 
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Coursework 6',
     'DESCRIPTION': 'Сайт объявлений',
     'VERSION': '1.0.0',
 }
-# TODO здесь мы настраиваем Djoser
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10,
+}
+
+
 DJOSER = {
     'SERIALIZERS': {
         'user_create': 'users.serializers.UserRegistrationSerializer',
-        'user': 'users.serializers.CurrentUserSerializer',
-        'current_user': 'users.serializers.CurrentUserSerializer',
     },
-    'LOGIN_FIELD': 'email'
+    'LOGIN_FIELD': 'email',
 }
 
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
-# TODO здесь необходимо настроить подключение к БД
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -181,4 +187,4 @@ EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 EMAIL_PORT = os.environ.get("EMAIL_PORT")
 
-AUTH_USER_MODEL = 'auth.User'
+AUTH_USER_MODEL = 'users.User'

@@ -5,14 +5,11 @@ from users.models import User
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    ad = serializers.SlugRelatedField(read_only=True, slug_field="title")
-    author = serializers.CharField(source='author.first_name', read_only=True)
+    ad = serializers.PrimaryKeyRelatedField(queryset=Ad.objects.all())
+    author = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
     author_last_name = serializers.CharField(source='author.last_name', read_only=True)
-    author_first_name = serializers.SlugRelatedField(read_only=True, slug_field="author_first_name")
-    author_last_name = serializers.SlugRelatedField(read_only=True, slug_field="author_last_name")
-    author_id = serializers.CharField(source='author.id', read_only=True)
+    author_first_name = serializers.CharField(source='author.first_name', read_only=True)
     author_image = serializers.CharField(source='author.image', read_only=True)
-    ad_id = serializers.CharField(source='ad.id', read_only=True)
 
     class Meta:
         model = Comment

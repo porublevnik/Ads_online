@@ -47,16 +47,8 @@ class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     pagination_class = None
+    permission_classes = [AllowAny]
 
-    def perform_create(self, serializer):
-        ads_id = self.kwargs.get("ads_pk")
-        ad_instance = get_object_or_404(Ad, id=ads_id)
-        user = self.request.user
-        serializer.save(author=user, ad=ad_instance)
-
-    def get_queryset(self, *args, **kwargs):
-        comment = self.kwargs.get('ads_pk')
-        return super().get_queryset().filter(ad=comment)
 
     def get_permissions(self):
         if self.action == "retrieve":
